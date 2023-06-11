@@ -6,7 +6,7 @@ _注意_：该仓库分支只会维护 kanimal_lazy 项目，如果要使用 kan
 
 ## 使用
 
-要将程序放在 scml 项目目录下，然后为 kanimal 项目的目录创建快捷方式，也放在 scml 项目目录下，需要转换程序时，双击运行即可。
+要将程序放在 scml 项目目录下，然后为 kanimal 项目的目录创建快捷方式，也放在 scml 项目目录下，需要转换项目时，双击运行即可。
 
 程序有两种模式：
 
@@ -16,3 +16,8 @@ _注意_：该仓库分支只会维护 kanimal_lazy 项目，如果要使用 kan
 ## 限制
 
 程序默认不使用严格模式以及骨骼去除，对应 kanimal_cli 程序就是不使用 `-S/--strict` 选项与默认使用 `-b/--debone` 选项。
+
+## 下载
+
+[Releases](https://github.com/ttdly/kanimal-SE/releases)  
+[阿里云盘](https://www.aliyundrive.com/s/dzTkWZbmsom)
