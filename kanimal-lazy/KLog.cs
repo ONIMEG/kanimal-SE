@@ -46,17 +46,17 @@ namespace kanimal_lazy {
             if (add) { };
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine("[{0}]\t{1}", DateTime.Now, msg);
+            Console.WriteLine("[{0}] {1}", DateTime.Now, msg);
             Console.ResetColor();
         }
         public static void Error(string msg, bool add) {
             if (add) { };
             Console.ForegroundColor = ConsoleColor.DarkRed;
-            Console.WriteLine("[{0}]\t{1}", DateTime.Now, msg);
+            Console.WriteLine("[{0}] {1}", DateTime.Now, msg);
             Console.ResetColor();
         }
         public static string ErrorLine(int code) {
-            return $"[{DateTime.Now}]-[ErrorCode]:\t{code}";
+            return $"[{DateTime.Now}]-[ErrorCode]:  {code}";
         }
     }
     

@@ -9,14 +9,14 @@ namespace kanimal_lazy {
 
         public const string SOURCE = "S.lnk";
         public const string DESTINATION = "D.lnk";
-        public static bool flag = false; // 表示模式，false 是 S，true 是 D
+        private static int flag = -1;
 
         private static void Main() {
             KLog.Banner();
             var dir = GetDir();
-            if (flag) {
+            if (flag == 1) {
                 KanimalToScml(dir);
-            } else {
+            } else if(flag == 0) {
                 ScmlToKaimal(dir);
             }
             Console.ResetColor();
@@ -26,15 +26,13 @@ namespace kanimal_lazy {
         }
         
         private static string GetDir() {
-            // 首先，判断执行的模式，
-            // 如果是 S source 就是 scml 转 kanimal，
-            // 如果是 D destination 就是 kanimal 转 scml。
             var lnk = "";
             if (System.IO.File.Exists(SOURCE)) {
                 lnk = SOURCE;
+                flag = 1;
             } else if (System.IO.File.Exists(DESTINATION)) {
                 lnk = DESTINATION;
-                flag = true;
+                flag = 0;
             }
             if (lnk != "") {
                 IWshShell shell = new WshShell();
@@ -42,8 +40,9 @@ namespace kanimal_lazy {
                 // 读取快捷方式的目标值
                 string targetPath = shortcut.TargetPath;
                 if (Directory.Exists(targetPath)) {
-                    var model = flag ? "kaimal 转 scml" : "scml 转 kanimal";
-                    KLog.Info($"读取到目标目录 {targetPath} ，模式：{model}。", true);
+                    var model = (flag == 1) ? "kaimal 转 scml" : "scml 转 kanimal";
+                    KLog.Info($"读取到目标目录 {targetPath} 。", true);
+                    KLog.Info($"模式：{model}。", true);
                     return targetPath;
                 } else {
                     KLog.Error($"快捷方式：{lnk} 的目标 {targetPath} 不是目录。", true);
@@ -61,7 +60,7 @@ namespace kanimal_lazy {
             Reader? reader = null;
             var scml = fileList.Find(path => path.EndsWith(".scml"));
             if (scml == null) {
-                KLog.Error("当前目录并不存在 scml 项目，请确认程序在正确的目录。",true);
+                KLog.Error("当前目录并不存在 scml 项目，请确认程序在正确的目录中。",true);
                 return;
             } else {
                 var scmlReader = new ScmlReader(scml) {
@@ -75,8 +74,9 @@ namespace kanimal_lazy {
                 KLog.Info("开始转换……", true);
                 reader = scmlReader;
                 var kanimalWriter = new KanimWriter(scmlReader);
-                KLog.Info($"转换成功，将把 kanimal 项目存在 {dir} 目录下。", true);
+                KLog.Info($"转换成功，项目会保存在 {dir} 目录下。", true);
                 try {
+                    AllDelete(dir);
                     kanimalWriter.SaveToDir(dir);
                     KLog.Success();
                 } catch (Exception e) {
@@ -92,7 +92,8 @@ namespace kanimal_lazy {
             var build = "";
             Reader? reader = null;
             if (files.Length == 0) {
-                KLog.Error("目录：{0} 下不存在文件，请提供正确的目录。", true);
+                KLog.Error($"目录：{dir} 下不存在文件，请提供正确的目录。", true);
+                return;
             } else {
                 List<string> list = files.ToList();
                 png = list.Find(path => path.EndsWith(".png"));
@@ -104,7 +105,7 @@ namespace kanimal_lazy {
             if (nullCount > 0) {
                 KLog.Error("以下类型文件没有指定：", true);
                 for (var i = 0; i < 3; ++i) {
-                    if (convertList == null)
+                    if (convertList[i] == null)
                         switch (i) {
                             case 0:
                                 KLog.Error("*.png", true);
@@ -117,27 +118,40 @@ namespace kanimal_lazy {
                                 break;
                         }
                 }
-            } else {
-                reader = new KanimReader(
-                    new FileStream(build!, FileMode.Open),
-                    new FileStream(anim!, FileMode.Open),
-                    new FileStream(png!, FileMode.Open));
-                reader.Read();
-                KLog.Info("读取文件成功，只支持宽松模式。开始转换……", true);
-                KLog.Info("开始转换……", true);
-                var scmlWriter = new ScmlWriter(reader) {
-                    FillMissingSprites = true,
-                    AllowDuplicateSprites = true
-                };
-                KLog.Info("转换成功，将把 scml 项目保存到当前目录。", true);
-                try {
-                    scmlWriter.SaveToDir(".");
-                    KLog.Success();
-                } catch (Exception e) {
-                    KLog.Error($"{e.Message}", true);
-                }
+                return;
             }
+            reader = new KanimReader(
+                new FileStream(build!, FileMode.Open),
+                new FileStream(anim!, FileMode.Open),
+                new FileStream(png!, FileMode.Open));
+            reader.Read();
+            KLog.Info("读取文件成功，只支持宽松模式。", true);
+            KLog.Info("开始转换……", true);
+            var scmlWriter = new ScmlWriter(reader) {
+                FillMissingSprites = true,
+                AllowDuplicateSprites = true
+            };
+            KLog.Info("转换成功，项目会保存到当前目录。", true);
+            try {
+                scmlWriter.SaveToDir(".");
+                KLog.Success();
+            } catch (Exception e) {
+                KLog.Error($"{e.Message}", true);
+            }
+            
         }
         
+        private static void AllDelete(string dir) {
+            try {
+                KLog.Info("清除文件……", true);
+                foreach (string file in Directory.GetFiles(dir)){
+                    System.IO.File.Delete(file);
+                }
+                KLog.Info("成功", true);
+            }
+            catch (Exception ex) {
+                KLog.Error($"清空目标目录失败{ex.Message}\n如有多余文件请自行删除。", true);
+            }
+        }
     }
 }
