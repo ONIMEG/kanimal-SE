@@ -11,20 +11,36 @@ namespace kanimal_lazy {
         public const string DESTINATION = "D.lnk";
         private static int flag = -1;
 
-        private static void Main() {
+        private static void Main(string[] args) {
             KLog.Banner();
-            var dir = GetDir();
-            if (flag == 1) {
-                KanimalToScml(dir);
-            } else if(flag == 0) {
-                ScmlToKaimal(dir);
+            if (args.Length == 0) {
+                Mode1();
+            } else {
+                Mode2(args);
             }
             Console.ResetColor();
-            Console.WriteLine("\n执行结束，按任意键退出……");
+            Console.WriteLine("\n执行结束，按任意键退出...");
             Console.ReadKey();
 
         }
+
+        private static void Mode2(string[] args) {
+            for (int i = 0; i < args.Length; i++) {
+                
+            }
+        }
         
+        private static void Mode1() {
+            var dir = GetDir();
+            if (flag == 1) {
+                KanimalToScml(dir);
+            } else if (flag == 0) {
+                ScmlToKaimal(dir);
+            } else {
+                ScmlToKaimal("./anim/assets/");
+            }
+        }
+
         private static string GetDir() {
             var lnk = "";
             if (System.IO.File.Exists(SOURCE)) {
@@ -49,7 +65,7 @@ namespace kanimal_lazy {
                     return KLog.ErrorLine(1);
                 }
             } else {
-                KLog.Error($"当前目录没有指定快捷方式", true);
+                KLog.Warning($"当前目录没有指定快捷方式", true);
                 return KLog.ErrorLine(2);
             }
         }
@@ -58,11 +74,14 @@ namespace kanimal_lazy {
             string[] files = Directory.GetFiles(".");
             List<string> fileList = files.ToList();
             Reader? reader = null;
+            dir = Path.GetFullPath(dir);
             var scml = fileList.Find(path => path.EndsWith(".scml"));
+            var fileName = Path.GetFileNameWithoutExtension(scml);
             if (scml == null) {
                 KLog.Error("当前目录并不存在 scml 项目，请确认程序在正确的目录中。",true);
                 return;
             } else {
+                KLog.Wink($"自动检测到项目 {fileName}，读取文件...",true);
                 var scmlReader = new ScmlReader(scml) {
                     AllowInFramePivots = true,
                     AllowMissingSprites = true,
@@ -71,9 +90,10 @@ namespace kanimal_lazy {
                 };
                 scmlReader.Read();
                 KLog.Info("读取文件成功，当前只支持宽松模式，默认去骨骼。", true);
-                KLog.Info("开始转换……", true);
+                KLog.Info("开始转换...", true);
                 reader = scmlReader;
                 var kanimalWriter = new KanimWriter(scmlReader);
+                dir = Path.Combine(dir,fileName!);
                 KLog.Info($"转换成功，项目会保存在 {dir} 目录下。", true);
                 try {
                     AllDelete(dir);
@@ -126,7 +146,7 @@ namespace kanimal_lazy {
                 new FileStream(png!, FileMode.Open));
             reader.Read();
             KLog.Info("读取文件成功，只支持宽松模式。", true);
-            KLog.Info("开始转换……", true);
+            KLog.Info("开始转换...", true);
             var scmlWriter = new ScmlWriter(reader) {
                 FillMissingSprites = true,
                 AllowDuplicateSprites = true
@@ -143,14 +163,14 @@ namespace kanimal_lazy {
         
         private static void AllDelete(string dir) {
             try {
-                KLog.Info("清除文件……", true);
+                KLog.Info("清除多余文件...", true);
                 foreach (string file in Directory.GetFiles(dir)){
                     System.IO.File.Delete(file);
                 }
                 KLog.Info("成功", true);
             }
             catch (Exception ex) {
-                KLog.Error($"清空目标目录失败{ex.Message}\n如有多余文件请自行删除。", true);
+                KLog.Warning($"清空目标目录失败{ex.Message}\n如有多余文件请自行删除。", true);
             }
         }
     }

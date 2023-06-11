@@ -44,7 +44,6 @@ namespace kanimal_lazy {
 
         public static void Info(string msg, bool add) {
             if (add) { };
-            Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine("[{0}] {1}", DateTime.Now, msg);
             Console.ResetColor();
@@ -52,6 +51,18 @@ namespace kanimal_lazy {
         public static void Error(string msg, bool add) {
             if (add) { };
             Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.WriteLine("[{0}] {1}", DateTime.Now, msg);
+            Console.ResetColor();
+        }
+        public static void Warning(string msg, bool add) {
+            if (add) { };
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.WriteLine("[{0}] {1}", DateTime.Now, msg);
+            Console.ResetColor();
+        }
+        public static void Wink(string msg, bool add) {
+            if (add) { };
+            Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine("[{0}] {1}", DateTime.Now, msg);
             Console.ResetColor();
         }
