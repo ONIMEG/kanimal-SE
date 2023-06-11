@@ -13,27 +13,33 @@ namespace kanimal_lazy {
 
         private static void Main(string[] args) {
             KLog.Banner();
-            if (args.Length == 0) {
-                Mode1();
-            } else {
-                Mode2(args);
+            try {
+                if (args.Length == 0) {
+                    Mode1();
+                } else {
+                    Mode2(args);
+                }
+            } catch(Exception ex) {
+                KLog.Error(ex.Message, true);
             }
             Console.ResetColor();
             Console.WriteLine("\n执行结束，按任意键退出...");
             Console.ReadKey();
-
         }
 
         private static void Mode2(string[] args) {
-            for (int i = 0; i < args.Length; i++) {
-                
+            if (System.IO.File.Exists(args[0]) && args.Length == 3) {
+                KLog.Wink("文件已接收", true);
+                KanimalToScml(".", args);
+            } else {
+                KLog.Wink("暂不支持目录转换", true);
             }
         }
         
         private static void Mode1() {
             var dir = GetDir();
             if (flag == 1) {
-                KanimalToScml(dir);
+                KanimalToScml(dir, null);
             } else if (flag == 0) {
                 ScmlToKaimal(dir);
             } else {
@@ -105,8 +111,14 @@ namespace kanimal_lazy {
             }
         }
 
-        private static void KanimalToScml(string dir) {
-            string[] files = Directory.GetFiles(dir);
+        private static void KanimalToScml(string dir, string[]? args) {
+            string[] files = Array.Empty<string>();
+            dir = Path.GetFullPath(dir);
+            if (args != null && args.Length == 3) {
+                files = args;
+            } else {
+                files = Directory.GetFiles(dir);
+            }
             var png = "";
             var anim = "";
             var build = "";
@@ -145,15 +157,17 @@ namespace kanimal_lazy {
                 new FileStream(anim!, FileMode.Open),
                 new FileStream(png!, FileMode.Open));
             reader.Read();
-            KLog.Info("读取文件成功，只支持宽松模式。", true);
+            var fileName = Path.GetFileNameWithoutExtension(png!);
+            dir = Path.Combine(dir, fileName);
+            KLog.Info($"读取项目 {fileName} 成功。", true);
             KLog.Info("开始转换...", true);
             var scmlWriter = new ScmlWriter(reader) {
                 FillMissingSprites = true,
                 AllowDuplicateSprites = true
             };
-            KLog.Info("转换成功，项目会保存到当前目录。", true);
+            KLog.Info($"转换成功，项目会保存到 {dir}。", true);
             try {
-                scmlWriter.SaveToDir(".");
+                scmlWriter.SaveToDir(dir);
                 KLog.Success();
             } catch (Exception e) {
                 KLog.Error($"{e.Message}", true);
