@@ -31,8 +31,12 @@ namespace kanimal_lazy {
             if (System.IO.File.Exists(args[0]) && args.Length == 3) {
                 KLog.Wink("文件已接收", true);
                 KanimalToScml(".", args);
+            } else if(System.IO.File.Exists(args[0]) && args.Length == 1) {
+                if (args[0].EndsWith(".scml")) {
+                    ScmlToKaimal("./anim/assets/", args[0]);
+                }
             } else {
-                KLog.Wink("暂不支持目录转换", true);
+                KLog.Wink("暂不支持这样的转换", true);
             }
         }
         
@@ -76,18 +80,55 @@ namespace kanimal_lazy {
             }
         }
 
+
+        private static void ScmlToKaimal(string dir, string path) {
+            var scml = path;
+            Reader? reader;
+            dir = Path.GetFullPath(dir);
+            var fileName = Path.GetFileNameWithoutExtension(scml);
+            if (scml == null) {
+                KLog.Error("当前目录并不存在 scml 项目，请确认程序在正确的目录中。", true);
+                return;
+            } else {
+                KLog.Wink($"检测到项目 {fileName}，读取文件...", true);
+                var scmlReader = new ScmlReader(scml) {
+                    AllowInFramePivots = true,
+                    AllowMissingSprites = true,
+                    InterpolateMissingFrames = true,
+                    Debone = true
+                };
+                scmlReader.Read();
+                KLog.Info("读取文件成功，当前只支持宽松模式，默认去骨骼。", true);
+                KLog.Info("开始转换...", true);
+                reader = scmlReader;
+                var kanimalWriter = new KanimWriter(scmlReader);
+                dir = Path.Combine(dir, fileName!);
+                KLog.Info($"转换成功，结果会保存在 {dir} 目录下。", true);
+                try {
+                    AllDelete(dir);
+                    kanimalWriter.SaveToDir(dir);
+                    KLog.Success();
+                }
+                catch (Exception e) {
+                    KLog.Error($"{e.Message}", true);
+                }
+            }
+        }
+
+
         private static void ScmlToKaimal(string dir) {
+            var scml = "";
             string[] files = Directory.GetFiles(".");
             List<string> fileList = files.ToList();
             Reader? reader = null;
             dir = Path.GetFullPath(dir);
-            var scml = fileList.Find(path => path.EndsWith(".scml"));
+            scml = fileList.Find(path => path.EndsWith(".scml"));
             var fileName = Path.GetFileNameWithoutExtension(scml);
             if (scml == null) {
                 KLog.Error("当前目录并不存在 scml 项目，请确认程序在正确的目录中。",true);
                 return;
             } else {
-                KLog.Wink($"自动检测到项目 {fileName}，读取文件...",true);
+                KLog.Wink($"检测到项目 {fileName}，读取文件...",true);
                 var scmlReader = new ScmlReader(scml) {
                     AllowInFramePivots = true,
                     AllowMissingSprites = true,
@@ -100,7 +141,7 @@ namespace kanimal_lazy {
                 reader = scmlReader;
                 var kanimalWriter = new KanimWriter(scmlReader);
                 dir = Path.Combine(dir,fileName!);
-                KLog.Info($"转换成功，项目会保存在 {dir} 目录下。", true);
+                KLog.Info($"转换成功，结果会保存在 {dir} 目录下。", true);
                 try {
                     AllDelete(dir);
                     kanimalWriter.SaveToDir(dir);
@@ -165,7 +206,7 @@ namespace kanimal_lazy {
                 FillMissingSprites = true,
                 AllowDuplicateSprites = true
             };
-            KLog.Info($"转换成功，项目会保存到 {dir}。", true);
+            KLog.Info($"转换成功，结果会保存到 {dir}。", true);
             try {
                 scmlWriter.SaveToDir(dir);
                 KLog.Success();
